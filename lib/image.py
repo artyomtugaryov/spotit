@@ -52,7 +52,7 @@ class Image:
         """
         return Image(image=cv2.resize(self.image, size), name=self.name)
 
-    def threshold(self, threshold: int = 190, bitwise_not: bool=False) -> 'Image':
+    def threshold(self, threshold: int = 190, bitwise_not: bool = False) -> 'Image':
         threshed_image = cv2.threshold(self.image, threshold, 255, cv2.THRESH_BINARY)[1]
         if bitwise_not:
             threshed_image = cv2.bitwise_not(threshed_image)
@@ -68,9 +68,14 @@ class Image:
     def add_contour(self, contour):
         cv2.drawContours(self.image, [contour], -1, (255, 0, 0), 3)
 
-    def keep_contour_with_white_background(self, contour):
-        mask_value = 255
-        white_color = [mask_value, mask_value, mask_value]
+    def keep_contour(self, contour, mask_value: int = 255) -> 'Image':
+        """
+        Get Image with content of the contour and mask_value background
+        :param contour: contour to keep on image
+        :param mask_value: int - value of background color
+        :return: Image with content of contour on [mask_value]*3 background
+        """
+        white_color = [mask_value] * 3
         stencil = np.zeros(self.image.shape[:-1]).astype(np.uint8)
         cv2.fillPoly(stencil, [contour], mask_value)
         result = self.image.copy()
