@@ -23,17 +23,22 @@ if __name__ == '__main__':
         card_image = resized_image.keep_contour(largest_contour)
         x, y, w, h = Image.bounding_square_around_contour(contours[0])
         processed_card = card_image.take_out_roi(x, y, w, h)
-        processed_card.save_image(PROCESSED_IMAGES_PATH)
+        try:
+            processed_card.save_image(PROCESSED_IMAGES_PATH)
+        except Exception as e:
+            print(f'Cannot save processed image {image_path}')
+            print(e)
+            continue
         images.append(processed_card)
         icons_contours = processed_card.gray().threshold(bitwise_not=True).contours()
         for index, contour in enumerate(icons_contours):
             if cv2.contourArea(contour) < 1000:
                 continue
-            icon_image = processed_card.keep_contour(contour)
-            x, y, w, h = Image.bounding_square_around_contour(contour)
-            processed_icon = icon_image.take_out_roi(x, y, w, h)
-            icon_name = os.path.splitext(icon_image.name)[0]
-            processed_icon.save_image(ICONS_PATH, f'{icon_name}_{index}.jpeg')
+            # icon_image = processed_card.keep_contour(contour)
+            # x, y, w, h = Image.bounding_square_around_contour(contour)
+            # processed_icon = icon_image.take_out_roi(x, y, w, h)
+            # icon_name = os.path.splitext(icon_image.name)[0]
+            # processed_icon.save_image(ICONS_PATH, f'{icon_name}_{index}.jpeg')
             processed_card.draw_contour(contour)
             # processed_card.save_image(PROCESSED_IMAGES_PATH)
 
