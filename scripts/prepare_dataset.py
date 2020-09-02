@@ -7,6 +7,8 @@ from lib.image import Image
 from lib.constants import SOURCE_IMAGES_PATH, PROCESSED_IMAGES_PATH, ICONS_PATH
 from lib.utils import list_files_in_dir
 
+SAVE_ICONS = os.getenv('SAVE_ICONS', False)
+
 if __name__ == '__main__':
     images_paths = list_files_in_dir(SOURCE_IMAGES_PATH)
     images = []
@@ -34,12 +36,13 @@ if __name__ == '__main__':
         for index, contour in enumerate(icons_contours):
             if cv2.contourArea(contour) < 1000:
                 continue
-            # icon_image = processed_card.keep_contour(contour)
-            # x, y, w, h = Image.bounding_square_around_contour(contour)
-            # processed_icon = icon_image.take_out_roi(x, y, w, h)
-            # icon_name = os.path.splitext(icon_image.name)[0]
-            # processed_icon.save_image(ICONS_PATH, f'{icon_name}_{index}.jpeg')
             processed_card.draw_contour(contour)
-            # processed_card.save_image(PROCESSED_IMAGES_PATH)
+            if not SAVE_ICONS:
+                continue
+            icon_image = processed_card.keep_contour(contour)
+            x, y, w, h = Image.bounding_square_around_contour(contour)
+            processed_icon = icon_image.take_out_roi(x, y, w, h)
+            icon_name = os.path.splitext(icon_image.name)[0]
+            processed_icon.save_image(ICONS_PATH, f'{icon_name}_{index}.jpeg')
         print(f'Successfully processed {image_path}')
     COCOAdapter(images).save_annotations(os.path.join(PROCESSED_IMAGES_PATH, 'a.json'))

@@ -129,5 +129,5 @@ class Image:
     @property
     def id(self) -> int:
         image_name, _  = os.path.splitext(self.name)
-        image_id = image_name.split('_')[-1]
+        image_id = image_name.split('_')[-1].split(' ')[0]
         return int(image_id)
