@@ -1,4 +1,5 @@
 import os
+from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -6,7 +7,7 @@ import imutils
 
 
 class Image:
-    def __init__(self, image: np.array, name: str = None):
+    def __init__(self, image: np.array, name: str = None, contours: List[np.ndarray] = None):
         """
         Uses path to image to process an image.
 
@@ -16,6 +17,7 @@ class Image:
 
         self.image = image
         self.name = name
+        self.image_contours = contours or []
 
     @classmethod
     def read_from_path(cls, path_to_img: str):
@@ -33,7 +35,7 @@ class Image:
         cl = clahe.apply(l_chanel)
         limg = cv2.merge((cl, a_chanel, b_chanel))
         result_image = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
-        return Image(image=result_image, name=self.name)
+        return self._new_image(result_image)
 
     def save_image(self, directory: str, file_name: str = None):
         """Save image in specified directory
@@ -42,6 +44,8 @@ class Image:
         :param file_name: str - name of file to save the image
         """
         file_name = file_name or self.name
+        if not os.path.exists(directory):
+            os.makedirs(directory)
         cv2.imwrite(os.path.join(directory, file_name), self.image)
 
     def resize_image(self, size=(800, 800)):
@@ -50,7 +54,7 @@ class Image:
         :param size: tuple - new size
         :return: Image resized to new size
         """
-        return Image(image=cv2.resize(self.image, size), name=self.name)
+        return self._new_image(cv2.resize(self.image, size))
 
     def threshold(self, threshold: int = 190, bitwise_not: bool = False) -> 'Image':
         threshed_image = cv2.threshold(self.image, threshold, 255, cv2.THRESH_BINARY)[1]
@@ -64,9 +68,6 @@ class Image:
     def contours(self):
         contours = cv2.findContours(self.image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return sorted(imutils.grab_contours(contours), key=cv2.contourArea, reverse=True)
-
-    def add_contour(self, contour):
-        cv2.drawContours(self.image, [contour], -1, (255, 0, 0), 3)
 
     def keep_contour(self, contour, mask_value: int = 255) -> 'Image':
         """
@@ -105,4 +106,28 @@ class Image:
         return self._new_image(self.image)
 
     def _new_image(self, image_content: np.array) -> 'Image':
-        return Image(image=image_content, name=self.name)
+        return Image(image=image_content, name=self.name, contours=self.image_contours)
+
+    def add_contour(self, contour, color):
+        cv2.drawContours(self.image, [contour], -1, color, 3)
+        self.image_contours.append(contour)
+
+    def draw_contour(self, contour, color=(0, 255, 0)) -> 'Image':
+        new_image = self.copy()
+        new_image.add_contour(contour=contour, color=color)
+        self.image_contours = new_image.image_contours
+        return new_image
+
+    @property
+    def height(self) -> int:
+        return self.image.shape[0]
+
+    @property
+    def width(self) -> int:
+        return self.image.shape[1]
+
+    @property
+    def id(self) -> int:
+        image_name, _  = os.path.splitext(self.name)
+        image_id = image_name.split('_')[-1]
+        return int(image_id)
