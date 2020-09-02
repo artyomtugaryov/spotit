@@ -41,5 +41,5 @@ if __name__ == '__main__':
             # processed_icon.save_image(ICONS_PATH, f'{icon_name}_{index}.jpeg')
             processed_card.draw_contour(contour)
             # processed_card.save_image(PROCESSED_IMAGES_PATH)
-
+        print(f'Successfully processed {image_path}')
     COCOAdapter(images).save_annotations(os.path.join(PROCESSED_IMAGES_PATH, 'a.json'))
