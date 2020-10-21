@@ -1,4 +1,5 @@
 import json
+import os
 from typing import List, Dict
 
 import cv2
@@ -62,7 +63,11 @@ class COCOAdapter(DatasetAdapter):
         for image in self.images:
             images.append(self.get_image_data(image))
             annotations.extend(self.get_annotation_data(image))
-        with open(annotations_file_path, 'w') as annotation_file:
+        if not os.path.exists(annotations_file_path):
+            os.mkdir(annotations_file_path)
+
+        annotation_file_path = os.path.join(annotations_file_path, 'annotations.json')
+        with open(annotation_file_path, 'w') as annotation_file:
             json.dump(result, annotation_file)
 
     @staticmethod
